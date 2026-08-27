@@ -15,7 +15,7 @@
 // @description:ja ページ分割された一覧と最大3階層のWebページを探索し、ファイル名の修復、IDM拡張機能用リンクの準備、各形式への書き出しを行います。
 // @description:de Durchsucht paginierte Listen und bis zu drei Webseiten-Ebenen, korrigiert Dateinamen, bereitet Links für die IDM-Browsererweiterung vor und exportiert Ergebnisse.
 // @description:ru Сканирует списки с пагинацией и до трёх уровней страниц, исправляет имена файлов, подготавливает ссылки для расширения IDM и экспортирует результаты.
-// @author       ChatGPT
+// @author       Alen
 // @license      MIT
 // @match        http://*/*
 // @match        https://*/*
@@ -23,7 +23,6 @@
 // @noframes
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
-// @grant        GM_registerMenuCommand
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_openInTab
@@ -417,9 +416,28 @@
         }
 
 
+        if (
+            ![
+                'left',
+                'right'
+            ].includes(
+                value.horizontalAnchor
+            )
+        ) {
+
+            return null;
+        }
+
+
         const left =
             Number(
                 value.left
+            );
+
+
+        const right =
+            Number(
+                value.right
             );
 
 
@@ -434,6 +452,9 @@
                 left
             ) ||
             !Number.isFinite(
+                right
+            ) ||
+            !Number.isFinite(
                 top
             )
         ) {
@@ -443,8 +464,23 @@
 
 
         return {
-            left,
-            top
+            left:
+                Math.max(
+                    0,
+                    left
+                ),
+            right:
+                Math.max(
+                    0,
+                    right
+                ),
+            top:
+                Math.max(
+                    0,
+                    top
+                ),
+            horizontalAnchor:
+                value.horizontalAnchor
         };
     }
 
@@ -694,11 +730,6 @@
             cleared: '结果已清空。',
             networkFailed: '网络请求失败',
             requestTimeout: '请求超时',
-            menuExtract: '提取此网页附件',
-            menuPrepare: '准备IDM插件批量下载',
-            menuSupport: '支持作者（Ko-fi）',
-            menuHelp: '使用帮助',
-            menuToggle: '显示/隐藏 IDM下载助手',
             filenameHeader: '文件名',
             urlHeader: '下载地址',
             sourcePageHeader: '来源页面',
@@ -819,11 +850,6 @@
             cleared: '結果已清除。',
             networkFailed: '網路請求失敗',
             requestTimeout: '請求逾時',
-            menuExtract: '擷取此網頁附件',
-            menuPrepare: '準備IDM外掛批次下載',
-            menuSupport: '支持作者（Ko-fi）',
-            menuHelp: '使用說明',
-            menuToggle: '顯示/隱藏 IDM下載助手',
             filenameHeader: '檔名',
             urlHeader: '下載網址',
             sourcePageHeader: '來源頁面',
@@ -944,11 +970,6 @@
             cleared: '結果をクリアしました。',
             networkFailed: 'ネットワーク要求に失敗しました',
             requestTimeout: '要求がタイムアウトしました',
-            menuExtract: 'このページから添付ファイルを抽出',
-            menuPrepare: 'IDM拡張機能の一括ダウンロードを準備',
-            menuSupport: '作者を支援（Ko-fi）',
-            menuHelp: '使い方',
-            menuToggle: 'IDM ダウンロードアシスタントを表示/非表示',
             filenameHeader: 'ファイル名',
             urlHeader: 'ダウンロードURL',
             sourcePageHeader: '取得元ページ',
@@ -1069,11 +1090,6 @@
             cleared: 'Ergebnisse geleert.',
             networkFailed: 'Netzwerkanfrage fehlgeschlagen',
             requestTimeout: 'Zeitüberschreitung der Anfrage',
-            menuExtract: 'Anhänge aus dieser Seite extrahieren',
-            menuPrepare: 'IDM-Erweiterung für Stapel-Download vorbereiten',
-            menuSupport: 'Autor unterstützen (Ko-fi)',
-            menuHelp: 'Hilfe',
-            menuToggle: 'IDM-Download-Assistent ein-/ausblenden',
             filenameHeader: 'Dateiname',
             urlHeader: 'Download-URL',
             sourcePageHeader: 'Quellseite',
@@ -1194,11 +1210,6 @@
             cleared: 'Результаты очищены.',
             networkFailed: 'Ошибка сетевого запроса',
             requestTimeout: 'Истекло время ожидания запроса',
-            menuExtract: 'Извлечь вложения с этой страницы',
-            menuPrepare: 'Подготовить пакетную загрузку расширением IDM',
-            menuSupport: 'Поддержать автора (Ko-fi)',
-            menuHelp: 'Справка',
-            menuToggle: 'Показать/скрыть помощник загрузки IDM',
             filenameHeader: 'Имя файла',
             urlHeader: 'URL загрузки',
             sourcePageHeader: 'Исходная страница',
@@ -1319,11 +1330,6 @@
             cleared: 'Results cleared.',
             networkFailed: 'Network request failed',
             requestTimeout: 'Request timed out',
-            menuExtract: 'Extract attachments from this page',
-            menuPrepare: 'Prepare IDM extension batch download',
-            menuSupport: 'Support author (Ko-fi)',
-            menuHelp: 'Help',
-            menuToggle: 'Show/hide IDM Download Assistant',
             filenameHeader: 'Filename',
             urlHeader: 'Download URL',
             sourcePageHeader: 'Source page',
@@ -9133,20 +9139,54 @@
     }
 
 
-    function persistPanelPosition(panel) {
+    function measurePanelPosition(
+        panel,
+        preferredAnchor =
+            null
+    ) {
 
         const rect =
             panel.getBoundingClientRect();
 
 
-        state.panelPosition = {
+        const left =
+            Math.max(
+                0,
+                Math.round(
+                    rect.left
+                )
+            );
+
+
+        const right =
+            Math.max(
+                0,
+                Math.round(
+                    window.innerWidth -
+                    rect.right
+                )
+            );
+
+
+        const horizontalAnchor =
+            [
+                'left',
+                'right'
+            ].includes(
+                preferredAnchor
+            )
+                ? preferredAnchor
+                : right < left
+                    ? 'right'
+                    : 'left';
+
+
+        return {
+            horizontalAnchor,
             left:
-                Math.max(
-                    0,
-                    Math.round(
-                        rect.left
-                    )
-                ),
+                left,
+            right:
+                right,
             top:
                 Math.max(
                     0,
@@ -9155,6 +9195,20 @@
                     )
                 )
         };
+    }
+
+
+    function persistPanelPosition(
+        panel,
+        preferredAnchor =
+            null
+    ) {
+
+        state.panelPosition =
+            measurePanelPosition(
+                panel,
+                preferredAnchor
+            );
 
 
         writeStoredValue(
@@ -9164,10 +9218,13 @@
     }
 
 
-    function applyStoredPanelPosition(panel) {
+    function applyPanelPosition(
+        panel,
+        position
+    ) {
 
         if (
-            !state.panelPosition
+            !position
         ) {
 
             return;
@@ -9186,16 +9243,29 @@
                 : panel.offsetHeight;
 
 
+        const maxLeft =
+            Math.max(
+                0,
+                window.innerWidth -
+                targetWidth
+            );
+
+
+        const requestedLeft =
+            position.horizontalAnchor ===
+            'right'
+                ? window.innerWidth -
+                position.right -
+                targetWidth
+                : position.left;
+
+
         const left =
             Math.max(
                 0,
                 Math.min(
-                    Math.max(
-                        0,
-                        window.innerWidth -
-                        targetWidth
-                    ),
-                    state.panelPosition.left
+                    maxLeft,
+                    requestedLeft
                 )
             );
 
@@ -9209,7 +9279,7 @@
                         window.innerHeight -
                         targetHeight
                     ),
-                    state.panelPosition.top
+                    position.top
                 )
             );
 
@@ -9226,6 +9296,15 @@
 
         panel.style.right =
             'auto';
+    }
+
+
+    function applyStoredPanelPosition(panel) {
+
+        applyPanelPosition(
+            panel,
+            state.panelPosition
+        );
     }
 
 
@@ -9574,6 +9653,13 @@
     color:var(--wra-input-text);
     font-family:inherit;
     font-size:12px;
+}
+
+#wra-support.wra-title-support{
+    padding:4px 8px;
+    font-size:12px;
+    line-height:1.2;
+    white-space:nowrap;
 }
 
 #wra-mini-icon{
@@ -10034,6 +10120,15 @@
             </select>
         </label>
 
+
+        <button
+            class="support wra-title-support"
+            id="wra-support"
+            title="${escapeHtml(t('supportAuthorTitle'))}"
+        >
+            ${escapeHtml(t('supportAuthor'))}
+        </button>
+
     </div>
 
     <div id="wra-helper-actions">
@@ -10138,15 +10233,6 @@
             title="${escapeHtml(t('prepareIdmTitle'))}"
         >
             ${escapeHtml(t('prepareIdm'))}
-        </button>
-
-
-        <button
-            class="support"
-            id="wra-support"
-            title="${escapeHtml(t('supportAuthorTitle'))}"
-        >
-            ${escapeHtml(t('supportAuthor'))}
         </button>
 
 
@@ -10914,7 +11000,20 @@
 
 
         const setPanelCollapsed =
-            collapsed => {
+            (
+                collapsed,
+                preservePosition =
+                    true
+            ) => {
+
+                const previousPosition =
+                    preservePosition
+                        ? measurePanelPosition(
+                            panel,
+                            state.panelPosition
+                                ?.horizontalAnchor
+                        )
+                        : null;
 
                 state.panelCollapsed =
                     Boolean(
@@ -10941,11 +11040,34 @@
                     STORAGE_KEYS.panelCollapsed,
                     state.panelCollapsed
                 );
+
+
+                if (
+                    previousPosition
+                ) {
+
+                    state.panelPosition =
+                        previousPosition;
+
+
+                    applyPanelPosition(
+                        panel,
+                        previousPosition
+                    );
+
+
+                    persistPanelPosition(
+                        panel,
+                        previousPosition
+                            .horizontalAnchor
+                    );
+                }
             };
 
 
         setPanelCollapsed(
-            state.panelCollapsed
+            state.panelCollapsed,
+            false
         );
 
 
@@ -11470,93 +11592,6 @@
             .style.display =
                 'block';
     }
-
-
-    /**********************************************************************
-     * 13. 油猴菜单
-     **********************************************************************/
-
-    try {
-
-       GM_registerMenuCommand(
-
-            t(
-                'menuExtract'
-            ),
-
-            () => {
-
-                showPanel();
-
-                scanCurrentPage();
-            }
-        );
-
-
-       GM_registerMenuCommand(
-
-            t(
-                'menuPrepare'
-            ),
-
-            () => {
-
-                showPanel();
-
-                idmDownloadSelected();
-            }
-        );
-
-
-       GM_registerMenuCommand(
-
-            t(
-                'menuSupport'
-            ),
-
-            openSupportAuthor
-        );
-
-
-       GM_registerMenuCommand(
-
-            t(
-                'menuHelp'
-            ),
-
-            openHelpPage
-        );
-
-
-       GM_registerMenuCommand(
-
-            t(
-                'menuToggle'
-            ),
-
-            () => {
-
-                createPanel();
-
-
-                const panel =
-                    document.getElementById(
-                        'wra-helper-panel'
-                    );
-
-
-                panel.style.display =
-
-                    panel.style.display ===
-                    'none'
-
-                        ? 'block'
-
-                        : 'none';
-            }
-        );
-
-    } catch (_) {}
 
 
     /**********************************************************************
