@@ -138,9 +138,6 @@
             '附件'
         ],
 
-        // 每一个父页面最多请求的下一级站内页面数。
-        maxSniffPages: 80,
-
         // 单个页面最多加入多少个候选子页面。
         maxSniffLinksPerPage: 160,
 
@@ -248,7 +245,22 @@
     const STORAGE_KEYS = {
 
         panelCollapsed:
-            'idm-download-assistant.panelCollapsed'
+            'idm-download-assistant.panelCollapsed',
+
+        panelPosition:
+            'idm-download-assistant.panelPosition',
+
+        themeMode:
+            'idm-download-assistant.themeMode',
+
+        listPages:
+            'idm-download-assistant.listPages',
+
+        sniffDepth:
+            'idm-download-assistant.sniffDepth',
+
+        sniffChildPages:
+            'idm-download-assistant.sniffChildPages'
     };
 
 
@@ -332,6 +344,110 @@
     }
 
 
+    function clampInteger(
+        value,
+        fallback,
+        min
+    ) {
+
+        const number =
+            Number.parseInt(
+                value,
+                10
+            );
+
+
+        if (
+            !Number.isFinite(
+                number
+            ) ||
+            number < min
+        ) {
+
+            return fallback;
+        }
+
+
+        return number;
+    }
+
+
+    function normalizeThemeMode(value) {
+
+        return [
+            'auto',
+            'dark',
+            'light'
+        ].includes(
+            value
+        )
+            ? value
+            : 'auto';
+    }
+
+
+    function normalizeSniffDepth(value) {
+
+        return [
+            '1',
+            '2',
+            '3'
+        ].includes(
+            String(
+                value
+            )
+        )
+            ? String(
+                value
+            )
+            : '1';
+    }
+
+
+    function normalizePanelPosition(value) {
+
+        if (
+            !value ||
+            typeof value !==
+            'object'
+        ) {
+
+            return null;
+        }
+
+
+        const left =
+            Number(
+                value.left
+            );
+
+
+        const top =
+            Number(
+                value.top
+            );
+
+
+        if (
+            !Number.isFinite(
+                left
+            ) ||
+            !Number.isFinite(
+                top
+            )
+        ) {
+
+            return null;
+        }
+
+
+        return {
+            left,
+            top
+        };
+    }
+
+
     const state = {
 
         items: [],
@@ -349,6 +465,53 @@
                     false
                 )
             ),
+
+        panelPosition:
+            normalizePanelPosition(
+                readStoredValue(
+                    STORAGE_KEYS.panelPosition,
+                    null
+                )
+            ),
+
+        themeMode:
+            normalizeThemeMode(
+                readStoredValue(
+                    STORAGE_KEYS.themeMode,
+                    'auto'
+                )
+            ),
+
+        uiSettings: {
+
+            listPages:
+                clampInteger(
+                    readStoredValue(
+                        STORAGE_KEYS.listPages,
+                        1
+                    ),
+                    1,
+                    1
+                ),
+
+            sniffDepth:
+                normalizeSniffDepth(
+                    readStoredValue(
+                        STORAGE_KEYS.sniffDepth,
+                        '1'
+                    )
+                ),
+
+            sniffChildPages:
+                clampInteger(
+                    readStoredValue(
+                        STORAGE_KEYS.sniffChildPages,
+                        20
+                    ),
+                    20,
+                    1
+                )
+        },
 
         filterText: '',
 
@@ -439,6 +602,11 @@
             appTitle: 'IDM下载助手',
             collapseExpand: '收起/展开',
             hideWindow: '隐藏窗口',
+            theme: '主题',
+            themeTitle: '选择下载助手界面主题',
+            themeAuto: '自动',
+            themeDark: '深色',
+            themeLight: '浅色',
             fetch: '抓取',
             listPages: '个列表页',
             sniffDepth: '嗅探级别',
@@ -559,6 +727,11 @@
             appTitle: 'IDM下載助手',
             collapseExpand: '收合/展開',
             hideWindow: '隱藏視窗',
+            theme: '主題',
+            themeTitle: '選擇下載助手介面主題',
+            themeAuto: '自動',
+            themeDark: '深色',
+            themeLight: '淺色',
             fetch: '抓取',
             listPages: '個列表頁',
             sniffDepth: '嗅探層級',
@@ -679,6 +852,11 @@
             appTitle: 'IDM ダウンロードアシスタント',
             collapseExpand: '折りたたむ/展開',
             hideWindow: 'ウィンドウを非表示',
+            theme: 'テーマ',
+            themeTitle: 'ダウンロードアシスタントのテーマを選択',
+            themeAuto: '自動',
+            themeDark: 'ダーク',
+            themeLight: 'ライト',
             fetch: '取得',
             listPages: '件のリストページ',
             sniffDepth: '探索階層',
@@ -799,6 +977,11 @@
             appTitle: 'IDM-Download-Assistent',
             collapseExpand: 'Ein-/ausklappen',
             hideWindow: 'Fenster ausblenden',
+            theme: 'Design',
+            themeTitle: 'Design des Download-Assistenten auswählen',
+            themeAuto: 'Automatisch',
+            themeDark: 'Dunkel',
+            themeLight: 'Hell',
             fetch: 'Scannen',
             listPages: 'Listenseite(n)',
             sniffDepth: 'Suchtiefe',
@@ -919,6 +1102,11 @@
             appTitle: 'Помощник загрузки IDM',
             collapseExpand: 'Свернуть/развернуть',
             hideWindow: 'Скрыть окно',
+            theme: 'Тема',
+            themeTitle: 'Выбрать тему помощника загрузки',
+            themeAuto: 'Авто',
+            themeDark: 'Тёмная',
+            themeLight: 'Светлая',
             fetch: 'Сканировать',
             listPages: 'стр. списка',
             sniffDepth: 'Глубина поиска',
@@ -1039,6 +1227,11 @@
             appTitle: 'IDM Download Assistant',
             collapseExpand: 'Collapse/expand',
             hideWindow: 'Hide window',
+            theme: 'Theme',
+            themeTitle: 'Choose the download assistant theme',
+            themeAuto: 'Auto',
+            themeDark: 'Dark',
+            themeLight: 'Light',
             fetch: 'Scan',
             listPages: 'list page(s)',
             sniffDepth: 'Sniff depth',
@@ -6451,8 +6644,7 @@
         pagesPerParent =
             Math.max(
                 1,
-                Math.min(
-                    CONFIG.maxSniffPages,
+                Math.floor(
                     Number(pagesPerParent) ||
                     20
                 )
@@ -7619,6 +7811,11 @@
 
         sheet.lang =
             UI_LANGUAGE;
+
+
+        applyThemeToElement(
+            sheet
+        );
 
 
         sheet.innerHTML = `
@@ -8854,6 +9051,328 @@
      * 12. UI
      **********************************************************************/
 
+    const themeMediaQuery =
+        typeof window.matchMedia ===
+        'function'
+            ? window.matchMedia(
+                '(prefers-color-scheme: dark)'
+            )
+            : null;
+
+
+    function effectiveThemeMode() {
+
+        if (
+            state.themeMode ===
+            'dark'
+        ) {
+
+            return 'dark';
+        }
+
+
+        if (
+            state.themeMode ===
+            'light'
+        ) {
+
+            return 'light';
+        }
+
+
+        return themeMediaQuery
+            ?.matches
+            ? 'dark'
+            : 'light';
+    }
+
+
+    function applyThemeToElement(element) {
+
+        if (!element) {
+
+            return;
+        }
+
+
+        const dark =
+            effectiveThemeMode() ===
+            'dark';
+
+
+        element.classList
+            .toggle(
+                'wra-theme-dark',
+                dark
+            );
+
+
+        element.classList
+            .toggle(
+                'wra-theme-light',
+                !dark
+            );
+    }
+
+
+    function applyInterfaceTheme() {
+
+        applyThemeToElement(
+            document.getElementById(
+                'wra-helper-panel'
+            )
+        );
+
+
+        applyThemeToElement(
+            document.getElementById(
+                'wra-idm-plugin-sheet'
+            )
+        );
+    }
+
+
+    function persistPanelPosition(panel) {
+
+        const rect =
+            panel.getBoundingClientRect();
+
+
+        state.panelPosition = {
+            left:
+                Math.max(
+                    0,
+                    Math.round(
+                        rect.left
+                    )
+                ),
+            top:
+                Math.max(
+                    0,
+                    Math.round(
+                        rect.top
+                    )
+                )
+        };
+
+
+        writeStoredValue(
+            STORAGE_KEYS.panelPosition,
+            state.panelPosition
+        );
+    }
+
+
+    function applyStoredPanelPosition(panel) {
+
+        if (
+            !state.panelPosition
+        ) {
+
+            return;
+        }
+
+
+        const targetWidth =
+            state.panelCollapsed
+                ? 48
+                : panel.offsetWidth;
+
+
+        const targetHeight =
+            state.panelCollapsed
+                ? 48
+                : panel.offsetHeight;
+
+
+        const left =
+            Math.max(
+                0,
+                Math.min(
+                    Math.max(
+                        0,
+                        window.innerWidth -
+                        targetWidth
+                    ),
+                    state.panelPosition.left
+                )
+            );
+
+
+        const top =
+            Math.max(
+                0,
+                Math.min(
+                    Math.max(
+                        0,
+                        window.innerHeight -
+                        targetHeight
+                    ),
+                    state.panelPosition.top
+                )
+            );
+
+
+        panel.style.left =
+            left +
+            'px';
+
+
+        panel.style.top =
+            top +
+            'px';
+
+
+        panel.style.right =
+            'auto';
+    }
+
+
+    function persistUiSettingsFromControls(
+        panel,
+        normalizeControls =
+            true
+    ) {
+
+        const pagesInput =
+            panel.querySelector(
+                '#wra-pages'
+            );
+
+
+        const depthSelect =
+            panel.querySelector(
+                '#wra-sniff-depth'
+            );
+
+
+        const childPagesInput =
+            panel.querySelector(
+                '#wra-sniff-pages'
+            );
+
+
+        const parsePositiveInteger =
+            value => {
+
+                const number =
+                    Number.parseInt(
+                        value,
+                        10
+                    );
+
+
+                return Number.isFinite(
+                    number
+                ) &&
+                    number >= 1
+                    ? number
+                    : null;
+            };
+
+
+        const listPages =
+            parsePositiveInteger(
+                pagesInput?.value
+            );
+
+
+        const childPages =
+            parsePositiveInteger(
+                childPagesInput?.value
+            );
+
+
+        if (
+            normalizeControls ||
+            listPages !== null
+        ) {
+
+            state.uiSettings
+                .listPages =
+                listPages ??
+                1;
+        }
+
+
+        state.uiSettings
+            .sniffDepth =
+            normalizeSniffDepth(
+                depthSelect?.value
+            );
+
+
+        if (
+            normalizeControls ||
+            childPages !== null
+        ) {
+
+            state.uiSettings
+                .sniffChildPages =
+                childPages ??
+                20;
+        }
+
+
+        if (
+            normalizeControls &&
+            pagesInput
+        ) {
+
+            pagesInput.value =
+                String(
+                    state.uiSettings
+                        .listPages
+                );
+        }
+
+
+        if (
+            normalizeControls &&
+            depthSelect
+        ) {
+
+            depthSelect.value =
+                state.uiSettings
+                    .sniffDepth;
+        }
+
+
+        if (
+            normalizeControls &&
+            childPagesInput
+        ) {
+
+            childPagesInput.value =
+                String(
+                    state.uiSettings
+                        .sniffChildPages
+                );
+        }
+
+
+        writeStoredValue(
+            STORAGE_KEYS.listPages,
+            state.uiSettings
+                .listPages
+        );
+
+
+        writeStoredValue(
+            STORAGE_KEYS.sniffDepth,
+            state.uiSettings
+                .sniffDepth
+        );
+
+
+        writeStoredValue(
+            STORAGE_KEYS.sniffChildPages,
+            state.uiSettings
+                .sniffChildPages
+        );
+    }
+
+
     function createPanel() {
 
         if (
@@ -8894,17 +9413,108 @@
 
         style.textContent = `
 
+#wra-helper-panel,
+#wra-idm-plugin-sheet{
+    --wra-bg:#ffffff;
+    --wra-text:#1f2328;
+    --wra-border:#cfd5dd;
+    --wra-shadow:0 8px 30px rgba(0,0,0,.18);
+    --wra-head-bg:#f5f7fa;
+    --wra-head-border:#e5e8ec;
+    --wra-muted:#667085;
+    --wra-subtle:#8a9099;
+    --wra-label:#555555;
+    --wra-button-bg:#ffffff;
+    --wra-button-text:#222222;
+    --wra-button-border:#c9d0d8;
+    --wra-hover-bg:#f0f5ff;
+    --wra-hover-border:#8bb4f8;
+    --wra-input-bg:#ffffff;
+    --wra-input-text:#1f2328;
+    --wra-input-border:#c9d0d8;
+    --wra-input-disabled-bg:#f4f5f6;
+    --wra-input-disabled-text:#8a9099;
+    --wra-list-bg:#fafbfc;
+    --wra-item-bg:#ffffff;
+    --wra-item-border:#eceff2;
+    --wra-name-hover-bg:#f9fcff;
+    --wra-machine-bg:#fff7e6;
+    --wra-machine-border:#ffd591;
+    --wra-status-bg:#f6f8fa;
+    --wra-status-text:#555555;
+    --wra-link:#667085;
+    --wra-primary:#1677ff;
+    --wra-primary-text:#ffffff;
+    --wra-idm:#00a870;
+    --wra-idm-hover:#009461;
+    --wra-support:#ff5f5f;
+    --wra-warn-bg:#fff7e6;
+    --wra-warn-border:#ffc069;
+    --wra-guide-bg:#fffbe6;
+    --wra-guide-border:#f0e5a6;
+    --wra-plugin-links-bg:#f7faff;
+    --wra-plugin-link-border:#e3ebf7;
+}
+
+#wra-helper-panel.wra-theme-dark,
+#wra-idm-plugin-sheet.wra-theme-dark{
+    --wra-bg:#1f2328;
+    --wra-text:#f0f3f7;
+    --wra-border:#46515f;
+    --wra-shadow:0 10px 34px rgba(0,0,0,.48);
+    --wra-head-bg:#292f38;
+    --wra-head-border:#3a4350;
+    --wra-muted:#a9b3c1;
+    --wra-subtle:#8d99a8;
+    --wra-label:#c2cad6;
+    --wra-button-bg:#2b333d;
+    --wra-button-text:#f0f3f7;
+    --wra-button-border:#4a5564;
+    --wra-hover-bg:#263a56;
+    --wra-hover-border:#5d8fd6;
+    --wra-input-bg:#171b21;
+    --wra-input-text:#f3f6fa;
+    --wra-input-border:#4a5564;
+    --wra-input-disabled-bg:#242a32;
+    --wra-input-disabled-text:#8792a0;
+    --wra-list-bg:#171b21;
+    --wra-item-bg:#232a33;
+    --wra-item-border:#343d49;
+    --wra-name-hover-bg:#1f3148;
+    --wra-machine-bg:#4a341b;
+    --wra-machine-border:#b7791f;
+    --wra-status-bg:#171b21;
+    --wra-status-text:#c8d1dc;
+    --wra-link:#9fbbdf;
+    --wra-warn-bg:#4a341b;
+    --wra-warn-border:#b7791f;
+    --wra-guide-bg:#342f18;
+    --wra-guide-border:#6f632b;
+    --wra-plugin-links-bg:#171f2b;
+    --wra-plugin-link-border:#2d3b4c;
+}
+
+#wra-helper-panel.wra-theme-light,
+#wra-idm-plugin-sheet.wra-theme-light{
+    color-scheme:light;
+}
+
+#wra-helper-panel.wra-theme-dark,
+#wra-idm-plugin-sheet.wra-theme-dark{
+    color-scheme:dark;
+}
+
 #wra-helper-panel{
     position:fixed;
     right:16px;
     top:72px;
     width:520px;
     max-height:84vh;
-    background:#fff;
-    color:#222;
-    border:1px solid #cfd5dd;
+    background:var(--wra-bg);
+    color:var(--wra-text);
+    border:1px solid var(--wra-border);
     border-radius:10px;
-    box-shadow:0 8px 30px rgba(0,0,0,.18);
+    box-shadow:var(--wra-shadow);
     z-index:2147483646;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Arial,sans-serif;
     font-size:13px;
@@ -8921,8 +9531,8 @@
     align-items:center;
     justify-content:space-between;
     padding:0 10px 0 12px;
-    background:#f5f7fa;
-    border-bottom:1px solid #e5e8ec;
+    background:var(--wra-head-bg);
+    border-bottom:1px solid var(--wra-head-border);
     cursor:move;
     user-select:none;
 }
@@ -8932,10 +9542,37 @@
     font-size:14px;
 }
 
+#wra-helper-titlebar{
+    display:flex;
+    align-items:center;
+    min-width:0;
+}
+
 #wra-helper-actions{
     display:flex;
     align-items:center;
     gap:2px;
+}
+
+#wra-theme-wrap{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    margin-left:10px;
+    color:var(--wra-label);
+    font-size:12px;
+    white-space:nowrap;
+}
+
+#wra-theme-select{
+    width:76px;
+    padding:3px 5px;
+    border:1px solid var(--wra-input-border);
+    border-radius:6px;
+    background:var(--wra-input-bg);
+    color:var(--wra-input-text);
+    font-family:inherit;
+    font-size:12px;
 }
 
 #wra-mini-icon{
@@ -8948,7 +9585,7 @@
     font-size:18px;
     cursor:pointer;
     padding:2px 6px;
-    color:#555;
+    color:var(--wra-label);
 }
 
 #wra-helper-body{
@@ -8961,7 +9598,7 @@
     height:48px;
     max-height:48px;
     border-radius:50%;
-    border-color:#00a870;
+    border-color:var(--wra-idm);
 }
 
 #wra-helper-panel.collapsed #wra-helper-head{
@@ -8970,10 +9607,11 @@
     justify-content:center;
     border-bottom:0;
     border-radius:50%;
-    background:#00a870;
+    background:var(--wra-idm);
 }
 
 #wra-helper-panel.collapsed #wra-helper-title,
+#wra-helper-panel.collapsed #wra-helper-titlebar,
 #wra-helper-panel.collapsed #wra-helper-actions,
 #wra-helper-panel.collapsed #wra-helper-body{
     display:none;
@@ -8987,8 +9625,8 @@
     height:100%;
     border:0;
     border-radius:50%;
-    background:#00a870;
-    color:#fff;
+    background:var(--wra-idm);
+    color:var(--wra-primary-text);
     font-size:11px;
     font-weight:800;
     letter-spacing:0;
@@ -8996,7 +9634,7 @@
 }
 
 #wra-helper-panel.collapsed #wra-mini-icon:hover{
-    background:#009461;
+    background:var(--wra-idm-hover);
 }
 
 #wra-helper-toolbar,
@@ -9023,7 +9661,7 @@
     align-items:center;
     gap:3px;
     white-space:nowrap;
-    color:#555;
+    color:var(--wra-label);
 }
 
 #wra-prefix-text,
@@ -9031,78 +9669,85 @@
     width:100%;
     min-width:0;
     padding:6px 8px;
-    border:1px solid #c9d0d8;
+    border:1px solid var(--wra-input-border);
     border-radius:6px;
+    background:var(--wra-input-bg);
+    color:var(--wra-input-text);
 }
 
 #wra-prefix-text:disabled,
 #wra-suffix-text:disabled{
-    background:#f4f5f6;
-    color:#8a9099;
+    background:var(--wra-input-disabled-bg);
+    color:var(--wra-input-disabled-text);
 }
 
 #wra-helper-panel button{
-    border:1px solid #c9d0d8;
-    background:#fff;
+    border:1px solid var(--wra-button-border);
+    background:var(--wra-button-bg);
     border-radius:6px;
     padding:6px 9px;
     cursor:pointer;
-    color:#222;
+    color:var(--wra-button-text);
     font-family:inherit;
 }
 
 #wra-helper-panel button:hover{
-    background:#f0f5ff;
-    border-color:#8bb4f8;
+    background:var(--wra-hover-bg);
+    border-color:var(--wra-hover-border);
 }
 
 #wra-helper-panel button.primary{
-    background:#1677ff;
-    color:#fff;
-    border-color:#1677ff;
+    background:var(--wra-primary);
+    color:var(--wra-primary-text);
+    border-color:var(--wra-primary);
 }
 
 #wra-helper-panel button.idm{
-    background:#00a870;
-    color:#fff;
-    border-color:#00a870;
+    background:var(--wra-idm);
+    color:var(--wra-primary-text);
+    border-color:var(--wra-idm);
     font-weight:600;
 }
 
 #wra-helper-panel button.support{
-    background:#ff5f5f;
-    color:#fff;
-    border-color:#ff5f5f;
+    background:var(--wra-support);
+    color:var(--wra-primary-text);
+    border-color:var(--wra-support);
     font-weight:600;
 }
 
 #wra-helper-panel button.warn{
-    background:#fff7e6;
-    border-color:#ffc069;
+    background:var(--wra-warn-bg);
+    border-color:var(--wra-warn-border);
 }
 
 #wra-pages,
 #wra-sniff-pages{
     width:54px;
     padding:5px;
-    border:1px solid #c9d0d8;
+    border:1px solid var(--wra-input-border);
     border-radius:6px;
+    background:var(--wra-input-bg);
+    color:var(--wra-input-text);
 }
 
 #wra-sniff-depth{
     width:72px;
     padding:5px;
-    border:1px solid #c9d0d8;
+    border:1px solid var(--wra-input-border);
     border-radius:6px;
-    background:#fff;
+    background:var(--wra-input-bg);
+    color:var(--wra-input-text);
 }
 
 #wra-filter{
     flex:1;
     min-width:160px;
     padding:6px 8px;
-    border:1px solid #c9d0d8;
+    border:1px solid var(--wra-input-border);
     border-radius:6px;
+    background:var(--wra-input-bg);
+    color:var(--wra-input-text);
 }
 
 #wra-helper-info{
@@ -9118,7 +9763,7 @@
 }
 
 #wra-selection-count{
-    color:#1677ff;
+    color:var(--wra-primary);
     font-weight:700;
     margin-left:8px;
 }
@@ -9126,9 +9771,9 @@
 #wra-helper-list{
     max-height:43vh;
     overflow:auto;
-    border:1px solid #e3e6ea;
+    border:1px solid var(--wra-head-border);
     border-radius:6px;
-    background:#fafbfc;
+    background:var(--wra-list-bg);
 }
 
 .wra-item{
@@ -9136,8 +9781,8 @@
     grid-template-columns:24px minmax(0,1fr);
     gap:5px;
     padding:8px;
-    border-bottom:1px solid #eceff2;
-    background:#fff;
+    border-bottom:1px solid var(--wra-item-border);
+    background:var(--wra-item-bg);
 }
 
 .wra-item:last-child{
@@ -9163,36 +9808,36 @@
     border:1px solid transparent;
     border-radius:4px;
     padding:4px 5px;
-    background:#fff;
-    color:#1f2328;
+    background:var(--wra-input-bg);
+    color:var(--wra-input-text);
     font-family:inherit;
     font-size:13px;
 }
 
 .wra-name-input:hover,
 .wra-name-input:focus{
-    border-color:#91caff;
+    border-color:var(--wra-hover-border);
     outline:none;
-    background:#f9fcff;
+    background:var(--wra-name-hover-bg);
 }
 
 .wra-machine{
-    background:#fff7e6!important;
-    border-color:#ffd591!important;
+    background:var(--wra-machine-bg)!important;
+    border-color:var(--wra-machine-border)!important;
 }
 
 .wra-url{
     margin-top:3px;
     font-size:11px;
     line-height:1.35;
-    color:#667085;
+    color:var(--wra-muted);
     word-break:break-all;
     max-height:32px;
     overflow:hidden;
 }
 
 .wra-url a{
-    color:#667085;
+    color:var(--wra-link);
     text-decoration:none;
 }
 
@@ -9203,7 +9848,7 @@
 .wra-meta{
     margin-top:3px;
     font-size:11px;
-    color:#8a9099;
+    color:var(--wra-subtle);
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
@@ -9213,8 +9858,8 @@
     margin-top:8px;
     padding:7px 8px;
     border-radius:6px;
-    background:#f6f8fa;
-    color:#555;
+    background:var(--wra-status-bg);
+    color:var(--wra-status-text);
     line-height:1.4;
     min-height:30px;
 }
@@ -9229,7 +9874,7 @@
     padding:24px;
     background:rgba(18,23,31,.62);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Arial,sans-serif;
-    color:#222;
+    color:var(--wra-text);
 }
 
 #wra-idm-plugin-sheet *{
@@ -9240,9 +9885,9 @@
     width:min(820px,94vw);
     max-height:88vh;
     overflow:hidden;
-    background:#fff;
+    background:var(--wra-bg);
     border-radius:10px;
-    box-shadow:0 14px 50px rgba(0,0,0,.35);
+    box-shadow:var(--wra-shadow);
 }
 
 #wra-idm-plugin-head{
@@ -9251,8 +9896,8 @@
     align-items:center;
     justify-content:space-between;
     padding:0 10px 0 16px;
-    border-bottom:1px solid #e1e5ea;
-    background:#f5f7fa;
+    border-bottom:1px solid var(--wra-head-border);
+    background:var(--wra-head-bg);
     font-size:15px;
     font-weight:700;
 }
@@ -9260,7 +9905,7 @@
 #wra-idm-plugin-head button{
     border:0;
     background:transparent;
-    color:#555;
+    color:var(--wra-label);
     font-size:23px;
     cursor:pointer;
 }
@@ -9268,8 +9913,8 @@
 #wra-idm-plugin-guide{
     padding:12px 16px;
     line-height:1.65;
-    background:#fffbe6;
-    border-bottom:1px solid #f0e5a6;
+    background:var(--wra-guide-bg);
+    border-bottom:1px solid var(--wra-guide-border);
     font-size:13px;
 }
 
@@ -9277,7 +9922,7 @@
     max-height:56vh;
     overflow:auto;
     padding:8px 12px;
-    background:#f7faff;
+    background:var(--wra-plugin-links-bg);
     user-select:text;
     cursor:context-menu;
 }
@@ -9285,8 +9930,8 @@
 #wra-idm-plugin-links a{
     display:block;
     padding:6px 8px;
-    border-bottom:1px solid #e3ebf7;
-    color:#075fcc;
+    border-bottom:1px solid var(--wra-plugin-link-border);
+    color:var(--wra-link);
     text-decoration:none;
     font-size:13px;
     line-height:1.4;
@@ -9299,8 +9944,8 @@
 }
 
 #wra-idm-plugin-links ::selection{
-    color:#fff;
-    background:#1677ff;
+    color:var(--wra-primary-text);
+    background:var(--wra-primary);
 }
 
 #wra-idm-plugin-actions{
@@ -9308,28 +9953,28 @@
     justify-content:flex-end;
     gap:8px;
     padding:10px 14px;
-    border-top:1px solid #e1e5ea;
+    border-top:1px solid var(--wra-head-border);
 }
 
 #wra-idm-plugin-actions button{
-    border:1px solid #c9d0d8;
+    border:1px solid var(--wra-button-border);
     border-radius:6px;
     padding:7px 12px;
-    background:#fff;
-    color:#222;
+    background:var(--wra-button-bg);
+    color:var(--wra-button-text);
     cursor:pointer;
     font-family:inherit;
 }
 
 #wra-idm-plugin-actions button:first-child{
-    border-color:#1677ff;
-    background:#1677ff;
-    color:#fff;
+    border-color:var(--wra-primary);
+    background:var(--wra-primary);
+    color:var(--wra-primary-text);
 }
 
 .wra-label{
     font-size:12px;
-    color:#666;
+    color:var(--wra-label);
 }
 `;
 
@@ -9369,8 +10014,25 @@
         IDM
     </button>
 
-    <div id="wra-helper-title">
-        ${escapeHtml(t('appTitle'))}
+    <div id="wra-helper-titlebar">
+
+        <div id="wra-helper-title">
+            ${escapeHtml(t('appTitle'))}
+        </div>
+
+
+        <label
+            id="wra-theme-wrap"
+            title="${escapeHtml(t('themeTitle'))}"
+        >
+            ${escapeHtml(t('theme'))}
+            <select id="wra-theme-select">
+                <option value="auto">${escapeHtml(t('themeAuto'))}</option>
+                <option value="dark">${escapeHtml(t('themeDark'))}</option>
+                <option value="light">${escapeHtml(t('themeLight'))}</option>
+            </select>
+        </label>
+
     </div>
 
     <div id="wra-helper-actions">
@@ -9407,7 +10069,7 @@
                 type="number"
                 min="1"
                 step="1"
-                value="1"
+                value="${escapeHtml(state.uiSettings.listPages)}"
             >
 
             ${escapeHtml(t('listPages'))}
@@ -9420,9 +10082,9 @@
             ${escapeHtml(t('sniffDepth'))}
 
             <select id="wra-sniff-depth">
-                <option value="1" selected>${escapeHtml(t('level1'))}</option>
-                <option value="2">${escapeHtml(t('level2'))}</option>
-                <option value="3">${escapeHtml(t('level3'))}</option>
+                <option value="1" ${state.uiSettings.sniffDepth === '1' ? 'selected' : ''}>${escapeHtml(t('level1'))}</option>
+                <option value="2" ${state.uiSettings.sniffDepth === '2' ? 'selected' : ''}>${escapeHtml(t('level2'))}</option>
+                <option value="3" ${state.uiSettings.sniffDepth === '3' ? 'selected' : ''}>${escapeHtml(t('level3'))}</option>
             </select>
 
         </span>
@@ -9439,8 +10101,8 @@
                 id="wra-sniff-pages"
                 type="number"
                 min="1"
-                max="${CONFIG.maxSniffPages}"
-                value="20"
+                step="1"
+                value="${escapeHtml(state.uiSettings.sniffChildPages)}"
             >
 
             ${escapeHtml(t('childPages'))}
@@ -9637,6 +10299,135 @@
             );
 
 
+        applyInterfaceTheme();
+
+
+        const themeSelect =
+            panel.querySelector(
+                '#wra-theme-select'
+            );
+
+
+        if (themeSelect) {
+
+            themeSelect.value =
+                state.themeMode;
+
+
+            themeSelect.addEventListener(
+                'change',
+                e => {
+
+                    state.themeMode =
+                        normalizeThemeMode(
+                            e.target.value
+                        );
+
+
+                    e.target.value =
+                        state.themeMode;
+
+
+                    writeStoredValue(
+                        STORAGE_KEYS.themeMode,
+                        state.themeMode
+                    );
+
+
+                    applyInterfaceTheme();
+                }
+            );
+        }
+
+
+        if (
+            themeMediaQuery &&
+            typeof themeMediaQuery.addEventListener ===
+            'function'
+        ) {
+
+            themeMediaQuery.addEventListener(
+                'change',
+                () => {
+
+                    if (
+                        state.themeMode ===
+                        'auto'
+                    ) {
+
+                        applyInterfaceTheme();
+                    }
+                }
+            );
+        } else if (
+            themeMediaQuery &&
+            typeof themeMediaQuery.addListener ===
+            'function'
+        ) {
+
+            themeMediaQuery.addListener(
+                () => {
+
+                    if (
+                        state.themeMode ===
+                        'auto'
+                    ) {
+
+                        applyInterfaceTheme();
+                    }
+                }
+            );
+        }
+
+
+        [
+            '#wra-pages',
+            '#wra-sniff-depth',
+            '#wra-sniff-pages'
+        ]
+            .forEach(
+                selector => {
+
+                    const input =
+                        panel.querySelector(
+                            selector
+                        );
+
+
+                    if (!input) {
+
+                        return;
+                    }
+
+
+                    input.addEventListener(
+                        'change',
+                        () =>
+                            persistUiSettingsFromControls(
+                                panel
+                            )
+                    );
+
+
+                    if (
+                        input.matches(
+                            'input'
+                        )
+                    ) {
+
+                        input.addEventListener(
+                            'input',
+                            () =>
+                                persistUiSettingsFromControls(
+                                    panel,
+                                    false
+                                )
+                        );
+                    }
+                }
+            );
+
+
         /******************************************************************
          * 按钮事件
          ******************************************************************/
@@ -9647,24 +10438,22 @@
             )
             .addEventListener(
                 'click',
-                () =>
-                    startSniffing(
+                () => {
+
+                    persistUiSettingsFromControls(
                         panel
-                            .querySelector(
-                                '#wra-pages'
-                            )
-                            .value,
-                        panel
-                            .querySelector(
-                                '#wra-sniff-depth'
-                            )
-                            .value,
-                        panel
-                            .querySelector(
-                                '#wra-sniff-pages'
-                            )
-                            .value
-                    )
+                    );
+
+
+                    return startSniffing(
+                        state.uiSettings
+                            .listPages,
+                        state.uiSettings
+                            .sniffDepth,
+                        state.uiSettings
+                            .sniffChildPages
+                    );
+                }
             );
 
 
@@ -10159,6 +10948,11 @@
         );
 
 
+        applyStoredPanelPosition(
+            panel
+        );
+
+
         collapseButton
             .addEventListener(
 
@@ -10179,6 +10973,17 @@
                 e => {
 
                     e.stopPropagation();
+
+
+                    if (
+                        panel.dataset
+                            .wraDragMoved ===
+                        '1'
+                    ) {
+
+                        return;
+                    }
+
 
                     setPanelCollapsed(
                         false
@@ -10239,15 +11044,30 @@
             0;
 
 
+        let moved =
+            false;
+
+
         handle.addEventListener(
 
             'mousedown',
 
             e => {
 
-                if (
+                const miniDrag =
+                    panel.classList
+                        .contains(
+                            'collapsed'
+                        ) &&
                     e.target.closest(
-                        'button'
+                        '#wra-mini-icon'
+                    );
+
+
+                if (
+                    !miniDrag &&
+                    e.target.closest(
+                        'button,input,select,textarea,label,a'
                     )
                 ) {
 
@@ -10257,6 +11077,15 @@
 
                 dragging =
                     true;
+
+
+                moved =
+                    false;
+
+
+                panel.dataset
+                    .wraDragMoved =
+                    '0';
 
 
                 const rect =
@@ -10302,6 +11131,36 @@
                 }
 
 
+                const deltaX =
+                    e.clientX -
+                    startX;
+
+
+                const deltaY =
+                    e.clientY -
+                    startY;
+
+
+                if (
+                    Math.abs(
+                        deltaX
+                    ) +
+                    Math.abs(
+                        deltaY
+                    ) >
+                    3
+                ) {
+
+                    moved =
+                        true;
+
+
+                    panel.dataset
+                        .wraDragMoved =
+                        '1';
+                }
+
+
                 const left =
                     Math.max(
 
@@ -10313,8 +11172,7 @@
                             panel.offsetWidth,
 
                             startLeft +
-                            e.clientX -
-                            startX
+                            deltaX
                         )
                     );
 
@@ -10327,11 +11185,10 @@
                         Math.min(
 
                             window.innerHeight -
-                            42,
+                            panel.offsetHeight,
 
                             startTop +
-                            e.clientY -
-                            startY
+                            deltaY
                         )
                     );
 
@@ -10354,8 +11211,34 @@
 
             () => {
 
+                if (
+                    !dragging
+                ) {
+
+                    return;
+                }
+
+
                 dragging =
                     false;
+
+
+                if (moved) {
+
+                    persistPanelPosition(
+                        panel
+                    );
+                }
+
+
+                setTimeout(
+                    () => {
+
+                        delete panel.dataset
+                            .wraDragMoved;
+                    },
+                    0
+                );
             }
         );
     }
@@ -10441,7 +11324,7 @@
 
            list.innerHTML =
 
-                `<div style="padding:18px;text-align:center;color:#8a9099">${escapeHtml(
+                `<div style="padding:18px;text-align:center;color:var(--wra-subtle)">${escapeHtml(
                     t(
                         'emptyResults'
                     )
