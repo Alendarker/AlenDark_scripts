@@ -16,6 +16,7 @@
 // @description:de Durchsucht paginierte Listen und bis zu drei Webseiten-Ebenen, korrigiert Dateinamen, bereitet Links für die IDM-Browsererweiterung vor und exportiert Ergebnisse.
 // @description:ru Сканирует списки с пагинацией и до трёх уровней страниц, исправляет имена файлов, подготавливает ссылки для расширения IDM и экспортирует результаты.
 // @author       ChatGPT
+// @license      MIT
 // @match        http://*/*
 // @match        https://*/*
 // @run-at       document-idle
