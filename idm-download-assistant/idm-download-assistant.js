@@ -495,6 +495,8 @@
 
         observerTimer: null,
 
+        viewportResizeTimer: null,
+
         panelCollapsed:
             Boolean(
                 readStoredValue(
@@ -9308,6 +9310,71 @@
     }
 
 
+    function keepPanelInsideViewport() {
+
+        const panel =
+            document.getElementById(
+                'wra-helper-panel'
+            );
+
+
+        if (
+            !panel ||
+            panel.style.display ===
+            'none'
+        ) {
+
+            return;
+        }
+
+
+        if (
+            state.panelPosition
+        ) {
+
+            applyPanelPosition(
+                panel,
+                state.panelPosition
+            );
+
+            return;
+        }
+
+
+        const measuredPosition =
+            measurePanelPosition(
+                panel
+            );
+
+
+        applyPanelPosition(
+            panel,
+            measuredPosition
+        );
+    }
+
+
+    function installViewportResizeHandler() {
+
+        window.addEventListener(
+            'resize',
+            () => {
+
+                clearTimeout(
+                    state.viewportResizeTimer
+                );
+
+
+                state.viewportResizeTimer =
+                    setTimeout(
+                        keepPanelInsideViewport,
+                        80
+                    );
+            }
+        );
+    }
+
+
     function persistUiSettingsFromControls(
         panel,
         normalizeControls =
@@ -11599,6 +11666,8 @@
      **********************************************************************/
 
     createPanel();
+
+    installViewportResizeHandler();
 
     installMutationObserver();
 
