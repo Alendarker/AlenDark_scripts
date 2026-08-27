@@ -7,7 +7,7 @@
 // @name:de      IDM-Download-Assistent
 // @name:ru      Помощник загрузки IDM
 // @namespace    https://tampermonkey.net/
-// @version      1.0.0
+// @version      1.0
 // @description  Scan paginated lists and up to three webpage levels, repair filenames, prepare IDM browser-extension links, and export results.
 // @description:zh-CN 列表分页与一至三级网页嗅探、中文文件名修复、IDM浏览器插件批量选择及多格式导出。
 // @description:zh-TW 列表分頁與一至三級網頁嗅探、中文檔名修復、IDM瀏覽器外掛批次選取及多格式匯出。
@@ -154,8 +154,14 @@
 
         supportUrl: 'https://ko-fi.com/alen685279',
 
-        // 填入公开帮助文档地址后，“帮助”按钮会在新标签页打开。
-        helpUrl: ''
+        helpUrls: {
+            'zh-CN': 'https://github.com/Alendarker/AlenDark_scripts/blob/main/idm-download-assistant/README.md',
+            'zh-TW': 'https://github.com/Alendarker/AlenDark_scripts/blob/main/idm-download-assistant/README.zh-TW.md',
+            en: 'https://github.com/Alendarker/AlenDark_scripts/blob/main/idm-download-assistant/README.en.md',
+            ja: 'https://github.com/Alendarker/AlenDark_scripts/blob/main/idm-download-assistant/README.ja.md',
+            de: 'https://github.com/Alendarker/AlenDark_scripts/blob/main/idm-download-assistant/README.de.md',
+            ru: 'https://github.com/Alendarker/AlenDark_scripts/blob/main/idm-download-assistant/README.ru.md'
+        }
     };
 
 
@@ -468,7 +474,7 @@
             supportAuthorTitle: '打开作者 Ko-fi 赞赏页面',
             help: '帮助',
             helpTitle: '打开使用帮助',
-            helpUrlMissing: '帮助链接尚未设置。请在脚本 CONFIG.helpUrl 中填写公开帮助文档地址。',
+            helpUrlMissing: '帮助链接尚未设置。请在脚本 CONFIG.helpUrls 中填写公开帮助文档地址。',
             found: '找到附件：{count}',
             selected: '已选：{count}',
             initialStatus: '等待扫描。前缀和后缀默认均不启用；勾选后生效，取消勾选即可撤销。所有名称框仍可直接修改。',
@@ -588,7 +594,7 @@
             supportAuthorTitle: '開啟作者 Ko-fi 贊賞頁面',
             help: '幫助',
             helpTitle: '開啟使用說明',
-            helpUrlMissing: '尚未設定幫助連結。請在腳本 CONFIG.helpUrl 中填入公開說明文件地址。',
+            helpUrlMissing: '尚未設定幫助連結。請在腳本 CONFIG.helpUrls 中填入公開說明文件地址。',
             found: '找到附件：{count}',
             selected: '已選：{count}',
             initialStatus: '等待掃描。前綴和後綴預設均不啟用；勾選後生效，取消勾選即可撤銷。所有名稱欄仍可直接修改。',
@@ -708,7 +714,7 @@
             supportAuthorTitle: '作者の Ko-fi 支援ページを開く',
             help: 'ヘルプ',
             helpTitle: '使い方を開く',
-            helpUrlMissing: 'ヘルプリンクが未設定です。スクリプトの CONFIG.helpUrl に公開ドキュメントのURLを入力してください。',
+            helpUrlMissing: 'ヘルプリンクが未設定です。スクリプトの CONFIG.helpUrls に公開ドキュメントのURLを入力してください。',
             found: '添付ファイル：{count}',
             selected: '選択済み：{count}',
             initialStatus: '待機中です。接頭辞と接尾辞は既定で無効です。チェックで有効化し、チェックを外すと削除できます。各ファイル名は直接編集できます。',
@@ -828,7 +834,7 @@
             supportAuthorTitle: 'Ko-fi-Unterstützungsseite des Autors öffnen',
             help: 'Hilfe',
             helpTitle: 'Hilfe öffnen',
-            helpUrlMissing: 'Der Hilfe-Link ist nicht festgelegt. Tragen Sie die öffentliche Dokumentationsadresse in CONFIG.helpUrl ein.',
+            helpUrlMissing: 'Der Hilfe-Link ist nicht festgelegt. Tragen Sie die öffentliche Dokumentationsadresse in CONFIG.helpUrls ein.',
             found: 'Anhänge: {count}',
             selected: 'Ausgewählt: {count}',
             initialStatus: 'Bereit. Präfix und Suffix sind standardmäßig deaktiviert. Aktivieren Sie ein Kontrollkästchen zum Anwenden und entfernen Sie es zum Rückgängigmachen. Jeder Dateiname bleibt direkt bearbeitbar.',
@@ -948,7 +954,7 @@
             supportAuthorTitle: 'Открыть страницу автора на Ko-fi',
             help: 'Справка',
             helpTitle: 'Открыть справку',
-            helpUrlMissing: 'Ссылка на справку не задана. Укажите публичный адрес документации в CONFIG.helpUrl.',
+            helpUrlMissing: 'Ссылка на справку не задана. Укажите публичный адрес документации в CONFIG.helpUrls.',
             found: 'Вложений: {count}',
             selected: 'Выбрано: {count}',
             initialStatus: 'Готово. Префикс и суффикс по умолчанию отключены; установите флажок для применения и снимите для удаления. Любое имя файла можно редактировать напрямую.',
@@ -1068,7 +1074,7 @@
             supportAuthorTitle: "Open the author's Ko-fi support page",
             help: 'Help',
             helpTitle: 'Open help',
-            helpUrlMissing: 'The help link is not configured. Set CONFIG.helpUrl to a public documentation URL.',
+            helpUrlMissing: 'The help link is not configured. Set CONFIG.helpUrls to public documentation URLs.',
             found: 'Attachments: {count}',
             selected: 'Selected: {count}',
             initialStatus: 'Ready. Prefix and suffix are disabled by default; check to enable and uncheck to remove them. Every filename remains directly editable.',
@@ -7189,9 +7195,20 @@
 
     function openHelpPage() {
 
+        const helpUrl =
+            CONFIG.helpUrls
+                ? (
+                    CONFIG.helpUrls[
+                        UI_LANGUAGE
+                    ] ||
+                    CONFIG.helpUrls.en
+                )
+                : '';
+
+
         if (
             !openExternalUrl(
-                CONFIG.helpUrl
+                helpUrl
             )
         ) {
 
@@ -10669,4 +10686,3 @@
     scanCurrentPage();
 
 })();
-
